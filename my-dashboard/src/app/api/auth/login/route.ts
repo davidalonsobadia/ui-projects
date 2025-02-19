@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     // 1. Generate a proper JWT token
     // 2. Set secure HTTP-only cookies
     // 3. Implement refresh token logic
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: {
         email: ADMIN_USER.email,
         name: ADMIN_USER.name,
@@ -35,6 +35,18 @@ export async function POST(request: Request) {
       },
       token: "mock-jwt-token",
     })
+
+    // Set HTTP-only cookie
+    response.cookies.set({
+      name: 'auth-token',
+      value: 'mock-jwt-token',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    })
+
+    return response
   }
 
   return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })

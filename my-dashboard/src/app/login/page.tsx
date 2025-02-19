@@ -25,7 +25,6 @@ export default function LoginPage() {
     const password = formData.get("password")
 
     try {
-      // Here you would integrate with your auth service
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,8 +36,7 @@ export default function LoginPage() {
       }
 
       const data = await response.json()
-      // Store the token in localStorage or other state management solution
-      localStorage.setItem("token", data.token)
+      // No need to store token in localStorage anymore
       router.push("/dashboard/statistics")
     } catch (error) {
       toast({

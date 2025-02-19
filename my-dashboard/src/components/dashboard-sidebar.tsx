@@ -27,10 +27,11 @@ export function DashboardSidebar() {
     },
   ]
 
-  const handleLogout = () => {
-    // Clear authentication token
-    localStorage.removeItem("token")
-    // Redirect to login page
+  const handleLogout = async () => {
+    // Clear the cookie through an API call
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+    })
     router.push("/login")
   }
 
