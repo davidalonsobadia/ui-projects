@@ -1,49 +1,43 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface Proof {
   id: string
-  user: string
-  type: string
-  status: string
-  date: string
-  details: string
+  user_id: string
+  proof_type: string
+  kind: string
+  title: string
+  country_code: string
+  noted_at: string
+  inserted_at: string
+  url: string
+  file_storage_id: string
 }
 
 export default function ProofsPage() {
   const [proofs, setProofs] = useState<Proof[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // In production, you would:
-    // 1. Add error handling
-    // 2. Add pagination
-    // 3. Add proper loading states
-    // 4. Add retry logic
-    // 5. Use React Query or SWR for better data fetching
     async function fetchProofs() {
       try {
         const response = await fetch("/api/proofs")
+        if (!response.ok) {
+          throw new Error('Failed to fetch proofs')
+        }
         const data = await response.json()
-        setProofs(data)
+        setProofs(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Error fetching proofs:", error)
+        setError(error instanceof Error ? error.message : 'Failed to fetch proofs')
+        setProofs([])
       } finally {
         setLoading(false)
       }
@@ -52,12 +46,28 @@ export default function ProofsPage() {
     fetchProofs()
   }, [])
 
-  // Filter proofs based on search
   const filteredProofs = proofs.filter(
-    (proof) =>
-      proof.user.toLowerCase().includes(search.toLowerCase()) ||
-      proof.type.toLowerCase().includes(search.toLowerCase()),
+    (proof) => {
+      const searchLower = search.toLowerCase()
+      return (
+        (proof.title?.toLowerCase() || '').includes(searchLower) ||
+        (proof.proof_type?.toLowerCase() || '').includes(searchLower) ||
+        (proof.country_code?.toLowerCase() || '').includes(searchLower)
+      )
+    }
   )
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-red-600">
+            {error}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -65,87 +75,52 @@ export default function ProofsPage() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Proofs</CardTitle>
-            <CardDescription>Manage user proofs and verifications</CardDescription>
+            <CardDescription>View and manage user proofs</CardDescription>
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4">
           <Input
-            placeholder="Search proofs..."
+            placeholder="Search by title, type or country..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Filter
-                <ChevronDownIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Type</DropdownMenuItem>
-              <DropdownMenuItem>Status</DropdownMenuItem>
-              <DropdownMenuItem>Date</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
+              <TableHead>Title</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Country</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Details</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={4} className="text-center">
                   Loading...
+                </TableCell>
+              </TableRow>
+            ) : filteredProofs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">
+                  No proofs found
                 </TableCell>
               </TableRow>
             ) : (
               filteredProofs.map((proof) => (
                 <TableRow key={proof.id}>
-                  <TableCell>{proof.user}</TableCell>
-                  <TableCell>{proof.type}</TableCell>
+                  <TableCell>{proof.title || '-'}</TableCell>
                   <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        proof.status === "Verified"
-                          ? "bg-green-50 text-green-700"
-                          : proof.status === "Pending"
-                            ? "bg-yellow-50 text-yellow-700"
-                            : "bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {proof.status}
+                    <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700">
+                      {proof.proof_type || '-'}
                     </span>
                   </TableCell>
-                  <TableCell>{new Date(proof.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{proof.details}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <DotsHorizontalIcon className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Verify</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Reject</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  <TableCell>{proof.country_code || '-'}</TableCell>
+                  <TableCell>{proof.noted_at ? new Date(proof.noted_at).toLocaleDateString() : '-'}</TableCell>
                 </TableRow>
               ))
             )}

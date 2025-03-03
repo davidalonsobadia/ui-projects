@@ -1,44 +1,31 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-
-interface User {
-  id: string
-  name: string
-  email: string
-  type: string
-  country: string
-  onboardedAt: string
-  status: string
-}
+import type { User } from "@/types/user"
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchUsers() {
       try {
         const response = await fetch("/api/users")
+        if (!response.ok) {
+          throw new Error('Failed to fetch users')
+        }
         const data = await response.json()
-        setUsers(data)
+        setUsers(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Error fetching users:", error)
+        setError(error instanceof Error ? error.message : 'Failed to fetch users')
+        setUsers([])
       } finally {
         setLoading(false)
       }
@@ -50,9 +37,20 @@ export default function UsersPage() {
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.country.toLowerCase().includes(search.toLowerCase()),
+      user.email.toLowerCase().includes(search.toLowerCase())
   )
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-red-600">
+            {error}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -63,28 +61,13 @@ export default function UsersPage() {
             <CardDescription>Manage your application users</CardDescription>
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4">
           <Input
-            placeholder="Search users..."
+            placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Filter
-                <ChevronDownIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Type</DropdownMenuItem>
-              <DropdownMenuItem>Country</DropdownMenuItem>
-              <DropdownMenuItem>Status</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent>
@@ -93,18 +76,22 @@ export default function UsersPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Onboarded</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead>Onboarding</TableHead>
+              <TableHead>Registered</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={5} className="text-center">
                   Loading...
+                </TableCell>
+              </TableRow>
+            ) : filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No users found
                 </TableCell>
               </TableRow>
             ) : (
@@ -115,34 +102,22 @@ export default function UsersPage() {
                   <TableCell>
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        user.type === "Premium" ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-700"
+                        user.membership_status === "premium" ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-700"
                       }`}
                     >
-                      {user.type}
-                    </span>
-                  </TableCell>
-                  <TableCell>{user.country}</TableCell>
-                  <TableCell>{new Date(user.onboardedAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                      {user.status}
+                      {user.membership_status}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <DotsHorizontalIcon className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit User</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Deactivate</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        user.onboarding_data.onboarding_done ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"
+                      }`}
+                    >
+                      {user.onboarding_data.onboarding_done ? "Completed" : "Pending"}
+                    </span>
                   </TableCell>
+                  <TableCell>{new Date(user.registration_date).toLocaleDateString()}</TableCell>
                 </TableRow>
               ))
             )}

@@ -1,41 +1,35 @@
-import { NextResponse } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
+import { API_BASE_URL } from "@/config/api"
 
-const MOCK_STATISTICS = {
-  userTypes: {
-    freemium: 2853,
-    premium: 947,
-    totalUsers: 3800,
-    conversionRate: "24.9%",
-  },
-  recentActivity: {
-    newUsersToday: 45,
-    newUsersThisWeek: 320,
-    newUsersThisMonth: 1250,
-  },
-  topCountries: [
-    { country: "United States", users: 1200, percentage: "31.6%" },
-    { country: "United Kingdom", users: 580, percentage: "15.3%" },
-    { country: "Germany", users: 420, percentage: "11.1%" },
-    { country: "France", users: 380, percentage: "10.0%" },
-    { country: "Spain", users: 340, percentage: "8.9%" },
-  ],
-  userGrowth: [
-    { month: "Jan", freemium: 2100, premium: 700 },
-    { month: "Feb", freemium: 2300, premium: 780 },
-    { month: "Mar", freemium: 2500, premium: 850 },
-    { month: "Apr", freemium: 2650, premium: 890 },
-    { month: "May", freemium: 2750, premium: 920 },
-    { month: "Jun", freemium: 2853, premium: 947 },
-  ],
-  onboardingSuccess: {
-    completed: 3420,
-    inProgress: 280,
-    stalled: 100,
-    completionRate: "90%",
-  },
+export async function GET(request: NextRequest) {
+  try {
+    const authToken = request.cookies.get('auth-token')?.value
+
+    if (!authToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`API responded with status ${response.status}`)
+    }
+
+    const statistics = await response.json()
+    return NextResponse.json(statistics)
+  } catch (error) {
+    console.error('Error fetching statistics:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch statistics' },
+      { status: 500 }
+    )
+  }
 }
-
-export async function GET() {
-  return NextResponse.json(MOCK_STATISTICS)
-}
-

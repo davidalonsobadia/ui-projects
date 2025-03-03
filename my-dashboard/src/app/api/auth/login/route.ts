@@ -1,54 +1,64 @@
 import { NextResponse } from "next/server"
+import { API_BASE_URL } from "@/config/api"
 
-// In a real application, you would:
-// 1. Hash passwords using bcrypt or similar
-// 2. Store users in a database
-// 3. Use proper session management
-const ADMIN_USER = {
-  email: "admin@example.com",
-  // In reality, this would be hashed
-  password: "admin123",
-  name: "Admin User",
-  role: "admin",
+interface LoginRequest {
+  email: string
+  password: string
+}
+
+interface ApiLoginRequest {
+  username: string
+  password: string
 }
 
 export async function POST(request: Request) {
-  const body = await request.json()
+  try {
+    const body: LoginRequest = await request.json()
 
-  // In production, you would make a real API call like:
-  // const response = await fetch('https://api.yourbackend.com/auth/login', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(body)
-  // })
+    const apiRequestBody: ApiLoginRequest = {
+      username: body.email,
+      password: body.password,
+    }
 
-  if (body.email === ADMIN_USER.email && body.password === ADMIN_USER.password) {
-    // In production, you would:
-    // 1. Generate a proper JWT token
-    // 2. Set secure HTTP-only cookies
-    // 3. Implement refresh token logic
-    const response = NextResponse.json({
-      user: {
-        email: ADMIN_USER.email,
-        name: ADMIN_USER.name,
-        role: ADMIN_USER.role,
+    const apiResponse = await fetch(`${API_BASE_URL}/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      token: "mock-jwt-token",
+      body: JSON.stringify(apiRequestBody),
     })
 
-    // Set HTTP-only cookie
+    if (!apiResponse.ok) {
+      const error = await apiResponse.json()
+      return NextResponse.json(
+        { error: error.message || "Invalid Credentials" },
+        { status: apiResponse.status }
+      )
+    }
+
+    const data = await apiResponse.json()
+    const response = NextResponse.json({
+      user: {
+        email: body.email,
+      },
+      token: data.access_token,
+    })
+
     response.cookies.set({
-      name: 'auth-token',
-      value: 'mock-jwt-token',
+      name: "auth-token",
+      value: data.access_token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
     })
 
     return response
+  } catch (error) {
+    console.error("Login error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
-
-  return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
 }
-

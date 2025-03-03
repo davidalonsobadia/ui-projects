@@ -1,54 +1,37 @@
-import { NextResponse } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
+import { API_BASE_URL } from "@/config/api"
+import type { User } from "@/types/user"
 
-const MOCK_USERS = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    type: "Premium",
-    country: "United States",
-    onboardedAt: "2024-01-15",
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Maria Garcia",
-    email: "maria@example.com",
-    type: "Freemium",
-    country: "Spain",
-    onboardedAt: "2024-02-01",
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Hans Schmidt",
-    email: "hans@example.com",
-    type: "Premium",
-    country: "Germany",
-    onboardedAt: "2024-01-20",
-    status: "Active",
-  },
-  {
-    id: "4",
-    name: "Sophie Martin",
-    email: "sophie@example.com",
-    type: "Freemium",
-    country: "France",
-    onboardedAt: "2024-02-10",
-    status: "Active",
-  },
-  {
-    id: "5",
-    name: "Luigi Romano",
-    email: "luigi@example.com",
-    type: "Premium",
-    country: "Italy",
-    onboardedAt: "2024-02-15",
-    status: "Active",
-  },
-]
+export async function GET(request: NextRequest) {
+  try {
+    const authToken = request.cookies.get('auth-token')?.value
 
-export async function GET() {
-  return NextResponse.json(MOCK_USERS)
+    if (!authToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`API responded with status ${response.status}`)
+    }
+
+    const users: User[] = await response.json()
+    return NextResponse.json(users)
+  } catch (error) {
+    console.error('Error fetching users:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch users' },
+      { status: 500 }
+    )
+  }
 }
 

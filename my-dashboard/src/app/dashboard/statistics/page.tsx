@@ -1,38 +1,41 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users } from "lucide-react"
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Users, Clock, FileText, MapPin } from "lucide-react"
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Statistics {
-  userTypes: {
-    freemium: number
-    premium: number
-    totalUsers: number
-    conversionRate: string
+  onboarded_users: number
+  total_users: number
+  onboards_last_month: number
+  onboards_last_week: number
+  onboards_last_year: number
+  proof_statistics: {
+    proof_types: Record<string, number>
+    proofs_per_user_average: number
+    total_proofs_submitted: number
+    verification_status: Record<string, number>
   }
-  recentActivity: {
-    newUsersToday: number
-    newUsersThisWeek: number
-    newUsersThisMonth: number
+  time_series_data: {
+    daily_onboards: Array<{ date: string; count: number }>
+    monthly_onboards: Array<{ month: string; count: number }>
   }
-  topCountries: Array<{
+  top_current_countries: Array<{
+    count: number
     country: string
-    users: number
-    percentage: string
+    country_name: string
   }>
-  userGrowth: Array<{
-    month: string
-    freemium: number
-    premium: number
+  top_target_countries: Array<{
+    count: number
+    country: string
+    country_name: string
   }>
-  onboardingSuccess: {
-    completed: number
-    inProgress: number
-    stalled: number
-    completionRate: string
+  user_activity: {
+    active_last_24h: number
+    active_last_7d: number
+    active_last_30d: number
   }
 }
 
@@ -62,98 +65,157 @@ export default function StatisticsPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* First row - Stats cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statistics.userTypes.totalUsers}</div>
+            <div className="text-2xl font-bold">{statistics?.total_users || 0}</div>
             <div className="text-xs text-muted-foreground">
-              {statistics.recentActivity.newUsersThisMonth} new this month
+              {statistics?.user_activity?.active_last_24h || 0} active in last 24h
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Premium Users</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Onboarded Users</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statistics.userTypes.premium}</div>
-            <div className="text-xs text-muted-foreground">Conversion rate: {statistics.userTypes.conversionRate}</div>
+            <div className="text-2xl font-bold">{statistics?.onboarded_users || 0}</div>
+            <div className="text-xs text-muted-foreground">
+              {((statistics?.onboarded_users || 0) / (statistics?.total_users || 1) * 100).toFixed(1)}% completion rate
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Freemium Users</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Total Proofs</CardTitle>
+            <FileText className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statistics.userTypes.freemium}</div>
-            <div className="text-xs text-muted-foreground">{statistics.recentActivity.newUsersToday} new today</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Onboarding Success</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics.onboardingSuccess.completionRate}</div>
-            <div className="text-xs text-muted-foreground">{statistics.onboardingSuccess.completed} completed</div>
+            <div className="text-2xl font-bold">{statistics?.proof_statistics?.total_proofs_submitted || 0}</div>
+            <div className="text-xs text-muted-foreground">
+              {statistics?.proof_statistics?.proofs_per_user_average?.toFixed(1) || '0.0'} per user
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>User Growth</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={statistics.userGrowth}>
-                  <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="premium" stroke="#16a34a" strokeWidth={2} dot={{ strokeWidth: 4 }} />
-                  <Line type="monotone" dataKey="freemium" stroke="#94a3b8" strokeWidth={2} dot={{ strokeWidth: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Second row - Full width graph */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Onboarding Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={statistics.time_series_data.monthly_onboards}>
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#888888" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  padding={{ left: 10, right: 10 }}
+                  tickFormatter={(value) => {
+                    const [year, month] = value.split('-')
+                    const date = new Date(parseInt(year), parseInt(month) - 1)
+                    return date.toLocaleDateString('en-US', { 
+                      month: 'short',
+                      year: '2-digit'
+                    })
+                  }}
+                />
+                <YAxis 
+                  stroke="#888888" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  width={40}
+                />
+                <Tooltip
+                  labelFormatter={(value) => {
+                    const [year, month] = value.split('-')
+                    const date = new Date(parseInt(year), parseInt(month) - 1)
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric'
+                    })
+                  }}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #ccc',
+                    borderRadius: '6px',
+                    padding: '8px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="count" 
+                  stroke="#16a34a" 
+                  strokeWidth={2} 
+                  dot={true}
+                  activeDot={{ strokeWidth: 2, r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Countries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {statistics.topCountries.map((country) => (
-                <div key={country.country} className="flex items-center">
-                  <div className="w-[140px] font-medium">{country.country}</div>
+      {/* Third row - Countries Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Countries Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-8">
+            <div>
+              <h4 className="text-sm font-medium mb-4">Current Countries</h4>
+              {statistics.top_current_countries.map((country) => (
+                <div key={country.country} className="flex items-center mb-4">
+                  <div className="w-[140px] font-medium">{country.country_name}</div>
                   <div className="flex-1">
                     <div className="h-2 w-full rounded-full bg-gray-100">
-                      <div className="h-2 rounded-full bg-green-600" style={{ width: country.percentage }} />
+                      <div
+                        className="h-2 rounded-full bg-green-600"
+                        style={{
+                          width: `${(country.count / statistics.total_users) * 100}%`,
+                        }}
+                      />
                     </div>
                   </div>
-                  <div className="ml-4 w-[60px] text-right text-sm text-gray-600">{country.percentage}</div>
+                  <div className="w-[60px] text-right text-sm text-gray-600">{country.count}</div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-4">Target Countries</h4>
+              {statistics.top_target_countries.map((country) => (
+                <div key={country.country} className="flex items-center mb-4">
+                  <div className="w-[140px] font-medium">{country.country_name}</div>
+                  <div className="flex-1">
+                    <div className="h-2 w-full rounded-full bg-gray-100">
+                      <div
+                        className="h-2 rounded-full bg-blue-600"
+                        style={{
+                          width: `${(country.count / statistics.total_users) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="w-[60px] text-right text-sm text-gray-600">{country.count}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
