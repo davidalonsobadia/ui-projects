@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -198,7 +199,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            className="w-[--sidebar-width] bg-white p-0 text-sidebar-foreground [&>button]:hidden"
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -206,6 +207,9 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <SheetPrimitive.Title className="sr-only">
+              Dashboard Sidebar
+            </SheetPrimitive.Title>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
