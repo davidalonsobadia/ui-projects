@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Register the logout handler on component mount
   useEffect(() => {
     registerLogoutHandler(handleLogout);
-  }, []);
+  }, [handleLogout]);
   
   return (
     <AuthContext.Provider value={{ logout: handleLogout }}>

@@ -3,12 +3,15 @@
 import type * as React from "react"
 import { Area, Bar, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
+// Define a generic data type for chart data
+export type ChartData = Record<string, string | number>
+
 export function Chart({
   data,
   height = 350,
   children,
 }: {
-  data: any[]
+  data: ChartData[]
   height?: number
   children: React.ReactNode
 }) {
@@ -21,15 +24,22 @@ export function Chart({
   )
 }
 
-export function ChartArea({ dataKey, ...props }: any) {
+export interface ChartComponentProps {
+  dataKey: string
+  stroke?: string
+  fill?: string
+  [key: string]: unknown
+}
+
+export function ChartArea({ dataKey, ...props }: ChartComponentProps) {
   return <Area dataKey={dataKey} strokeWidth={2} {...props} />
 }
 
-export function ChartBar({ dataKey, ...props }: any) {
+export function ChartBar({ dataKey, ...props }: ChartComponentProps) {
   return <Bar dataKey={dataKey} {...props} />
 }
 
-export function ChartLine({ dataKey, ...props }: any) {
+export function ChartLine({ dataKey, ...props }: ChartComponentProps) {
   return <Line type="monotone" dataKey={dataKey} strokeWidth={2} dot={{ strokeWidth: 2, r: 4 }} {...props} />
 }
 

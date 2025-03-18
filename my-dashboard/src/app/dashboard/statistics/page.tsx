@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Clock, FileText, MapPin, Activity, BarChart2, Award } from "lucide-react"
+import { Users, FileText, Activity, BarChart2, Award } from "lucide-react"
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 
 // Inline Tabs components to avoid import issues
 const Tabs = TabsPrimitive.Root
-const TabsList = ({ className, ...props }) => (
+const TabsList = ({ className, ...props }: React.ComponentPropsWithRef<typeof TabsPrimitive.List>) => (
   <TabsPrimitive.List
     className={cn(
       "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
@@ -19,7 +19,7 @@ const TabsList = ({ className, ...props }) => (
     {...props}
   />
 )
-const TabsTrigger = ({ className, ...props }) => (
+const TabsTrigger = ({ className, ...props }: React.ComponentPropsWithRef<typeof TabsPrimitive.Trigger>) => (
   <TabsPrimitive.Trigger
     className={cn(
       "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
@@ -28,7 +28,7 @@ const TabsTrigger = ({ className, ...props }) => (
     {...props}
   />
 )
-const TabsContent = ({ className, ...props }) => (
+const TabsContent = ({ className, ...props }: React.ComponentPropsWithRef<typeof TabsPrimitive.Content>) => (
   <TabsPrimitive.Content
     className={cn(
       "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -175,15 +175,15 @@ export default function StatisticsPage() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg">
-              <div className="text-3xl font-bold text-emerald-600">{statistics.user_activity.active_last_24h}</div>
+              <div className="text-3xl font-bold text-emerald-600">{statistics?.user_activity?.active_last_24h}</div>
               <div className="text-sm text-muted-foreground mt-1">Active in last 24h</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg">
-              <div className="text-3xl font-bold text-emerald-600">{statistics.user_activity.active_last_7d}</div>
+              <div className="text-3xl font-bold text-emerald-600">{statistics?.user_activity?.active_last_7d}</div>
               <div className="text-sm text-muted-foreground mt-1">Active in last 7 days</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg">
-              <div className="text-3xl font-bold text-emerald-600">{statistics.user_activity.active_last_30d}</div>
+              <div className="text-3xl font-bold text-emerald-600">{statistics?.user_activity?.active_last_30d}</div>
               <div className="text-sm text-muted-foreground mt-1">Active in last 30 days</div>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function StatisticsPage() {
               <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart 
-                    data={statistics.time_series_data.monthly_onboards}
+                    data={statistics?.time_series_data.monthly_onboards}
                     margin={{ top: 20, right: 20, bottom: 20, left: 10 }}
                   >
                     <XAxis 
@@ -266,7 +266,7 @@ export default function StatisticsPage() {
               <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart 
-                    data={statistics.time_series_data.daily_onboards}
+                    data={statistics?.time_series_data.daily_onboards}
                     margin={{ top: 20, right: 20, bottom: 20, left: 10 }}
                   >
                     <XAxis 
@@ -283,7 +283,7 @@ export default function StatisticsPage() {
                           day: 'numeric'
                         })
                       }}
-                      interval={Math.ceil(statistics.time_series_data.daily_onboards.length / 10)}
+                      interval={Math.ceil(statistics?.time_series_data?.daily_onboards?.length || 0 / 10)}
                     />
                     <YAxis 
                       stroke="#888888" 
@@ -336,8 +336,8 @@ export default function StatisticsPage() {
             <div>
               <h4 className="text-sm font-medium mb-4">Proof Types Distribution</h4>
               <div className="grid grid-cols-2 gap-3">
-                {Object.entries(statistics.proof_statistics.proof_types).map(([type, count]) => {
-                  const percentage = ((count / statistics.proof_statistics.total_proofs_submitted) * 100).toFixed(1);
+                {Object.entries(statistics?.proof_statistics?.proof_types || {}).map(([type, count]) => {
+                  const percentage = ((count / (statistics?.proof_statistics?.total_proofs_submitted || 1)) * 100).toFixed(1);
                   return (
                     <div key={type} className="bg-card p-3 rounded-lg border shadow-sm">
                       <div className="text-xs text-muted-foreground">{type}</div>
@@ -365,7 +365,7 @@ export default function StatisticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs text-gray-500">Total Proofs</div>
-                      <div className="text-2xl font-bold mt-1">{statistics.proof_statistics.total_proofs_submitted}</div>
+                      <div className="text-2xl font-bold mt-1">{statistics?.proof_statistics?.total_proofs_submitted}</div>
                     </div>
                     <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
                       <FileText className="h-6 w-6 text-purple-600" />
@@ -377,7 +377,7 @@ export default function StatisticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs text-gray-500">Average per User</div>
-                      <div className="text-2xl font-bold mt-1">{statistics.proof_statistics.proofs_per_user_average.toFixed(1)}</div>
+                      <div className="text-2xl font-bold mt-1">{statistics?.proof_statistics?.proofs_per_user_average.toFixed(1)}</div>
                     </div>
                     <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
                       <BarChart2 className="h-6 w-6 text-blue-600" />
@@ -390,7 +390,7 @@ export default function StatisticsPage() {
                     <div>
                       <div className="text-xs text-gray-500">Most Common Type</div>
                       <div className="text-2xl font-bold mt-1">
-                        {Object.entries(statistics.proof_statistics.proof_types)
+                        {Object.entries(statistics?.proof_statistics?.proof_types || {})
                           .sort((a, b) => b[1] - a[1])[0][0]}
                       </div>
                     </div>
@@ -416,7 +416,7 @@ export default function StatisticsPage() {
             <div>
               <h4 className="text-sm font-medium mb-4">Current Countries</h4>
               <div className="space-y-3">
-                {statistics.top_current_countries.map((country) => (
+                {statistics?.top_current_countries.map((country) => (
                   <div key={country.country} className="bg-card p-3 rounded-lg border shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">{country.country_name}</div>
@@ -442,7 +442,7 @@ export default function StatisticsPage() {
             <div>
               <h4 className="text-sm font-medium mb-4">Target Countries</h4>
               <div className="space-y-3">
-                {statistics.top_target_countries.map((country) => (
+                {statistics?.top_target_countries.map((country) => (
                   <div key={country.country} className="bg-card p-3 rounded-lg border shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">{country.country_name}</div>

@@ -13,6 +13,10 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
   
   if (response.status === 401 || response.status === 422) {
     console.error("Unauthorized request:", response);
+    if (logoutHandler) {
+      await logoutHandler();
+    }
+    
     throw Error("Unauthorized");
   }
   

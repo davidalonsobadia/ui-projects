@@ -35,10 +35,9 @@ export default function LoginPage() {
         throw new Error("Login failed")
       }
 
-      const data = await response.json()
-      // No need to store token in localStorage anymore
       router.push("/dashboard/statistics")
     } catch (error) {
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error",
