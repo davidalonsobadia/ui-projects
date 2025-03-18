@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { API_BASE_URL } from "@/config/api"
+import { apiFetch } from "@/lib/api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/proofs`, {
+    const response = await apiFetch(`${API_BASE_URL}/admin/proofs`, {
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'Content-Type': 'application/json',

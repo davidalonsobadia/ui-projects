@@ -73,15 +73,22 @@ interface Statistics {
 export default function StatisticsPage() {
   const [statistics, setStatistics] = useState<Statistics | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchStatistics() {
       try {
         const response = await fetch("/api/statistics")
         const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch statistics')
+        }
+
         setStatistics(data)
       } catch (error) {
         console.error("Error fetching statistics:", error)
+        setError(error instanceof Error ? error.message : 'Failed to fetch statistics')
       } finally {
         setLoading(false)
       }
@@ -90,8 +97,20 @@ export default function StatisticsPage() {
     fetchStatistics()
   }, [])
 
-  if (loading || !statistics) {
+  if (loading) {
     return <div>Loading statistics...</div>
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-red-600">
+            {error}
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
