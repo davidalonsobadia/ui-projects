@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { BarChart3, FileText, Users, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -37,7 +38,22 @@ export function DashboardSidebar() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="p-6">
+      <div className="p-6 flex flex-col items-center">
+        {/* Logo using Next.js Image component */}
+        <div className="mb-3 flex justify-center">
+          <Image
+            src="/images/logo.png"
+            alt="Tax Solutions Logo"
+            width={64}
+            height={64}
+            className="object-contain"
+            unoptimized={true}
+            onError={() => {
+              // Fallback handled in CSS
+              console.log("Logo failed to load");
+            }}
+          />
+        </div>
         <h2 className="text-lg font-semibold text-gray-900">Admin Dashboard</h2>
       </div>
       <nav className="flex-1 space-y-1 px-4">
