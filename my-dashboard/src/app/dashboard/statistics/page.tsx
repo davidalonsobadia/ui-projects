@@ -330,7 +330,99 @@ export default function StatisticsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Fourth row - Proof Statistics - Redesigned */}
+      {/* Fourth row - User Acquisition Channels */}
+      <Card>
+        <CardHeader>
+          <CardTitle>User Acquisition Channels</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            {statistics?.referrer_statistics.map((referrer) => (
+              <div key={referrer.referrer_id || 'organic'} className="bg-card p-3 rounded-lg border shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium">{referrer.name}</div>
+                  <div className="text-sm font-bold text-emerald-600">{referrer.count}</div>
+                </div>
+                <div className="h-2 w-full rounded-full bg-emerald-50 dark:bg-emerald-950/30">
+                  <div
+                    className="h-2 rounded-full bg-emerald-500"
+                    style={{
+                      width: `${(referrer.count / statistics.total_users) * 100}%`,
+                    }}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {((referrer.count / statistics.total_users) * 100).toFixed(1)}% of users
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Fifth row - Countries Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Countries Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Current Countries */}
+            <div>
+              <h4 className="text-sm font-medium mb-4">Current Countries</h4>
+              <div className="space-y-3">
+                {statistics?.top_current_countries.map((country) => (
+                  <div key={country.country} className="bg-card p-3 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">{country.country_name}</div>
+                      <div className="text-sm font-bold text-emerald-600">{country.count}</div>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-emerald-50 dark:bg-emerald-950/30">
+                      <div
+                        className="h-2 rounded-full bg-emerald-500"
+                        style={{
+                          width: `${(country.count / statistics.total_users) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {((country.count / statistics.total_users) * 100).toFixed(1)}% of users
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Target Countries */}
+            <div>
+              <h4 className="text-sm font-medium mb-4">Target Countries</h4>
+              <div className="space-y-3">
+                {statistics?.top_target_countries.map((country) => (
+                  <div key={country.country} className="bg-card p-3 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">{country.country_name}</div>
+                      <div className="text-sm font-bold text-teal-600">{country.count}</div>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-teal-50 dark:bg-teal-950/30">
+                      <div
+                        className="h-2 rounded-full bg-teal-500"
+                        style={{
+                          width: `${(country.count / statistics.total_users) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {((country.count / statistics.total_users) * 100).toFixed(1)}% of users
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sixth row - Proof Statistics */}
       <Card>
         <CardHeader>
           <CardTitle>Proof Statistics</CardTitle>
@@ -406,98 +498,6 @@ export default function StatisticsPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Fifth row - Countries Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Countries Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Current Countries */}
-            <div>
-              <h4 className="text-sm font-medium mb-4">Current Countries</h4>
-              <div className="space-y-3">
-                {statistics?.top_current_countries.map((country) => (
-                  <div key={country.country} className="bg-card p-3 rounded-lg border shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{country.country_name}</div>
-                      <div className="text-sm font-bold text-emerald-600">{country.count}</div>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-emerald-50 dark:bg-emerald-950/30">
-                      <div
-                        className="h-2 rounded-full bg-emerald-500"
-                        style={{
-                          width: `${(country.count / statistics.total_users) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {((country.count / statistics.total_users) * 100).toFixed(1)}% of users
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Target Countries */}
-            <div>
-              <h4 className="text-sm font-medium mb-4">Target Countries</h4>
-              <div className="space-y-3">
-                {statistics?.top_target_countries.map((country) => (
-                  <div key={country.country} className="bg-card p-3 rounded-lg border shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{country.country_name}</div>
-                      <div className="text-sm font-bold text-teal-600">{country.count}</div>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-teal-50 dark:bg-teal-950/30">
-                      <div
-                        className="h-2 rounded-full bg-teal-500"
-                        style={{
-                          width: `${(country.count / statistics.total_users) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {((country.count / statistics.total_users) * 100).toFixed(1)}% of users
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sixth row - Referrer Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Referrer Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {statistics?.referrer_statistics.map((referrer) => (
-              <div key={referrer.referrer_id || 'organic'} className="bg-card p-3 rounded-lg border shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{referrer.name}</div>
-                  <div className="text-sm font-bold text-blue-600">{referrer.count}</div>
-                </div>
-                <div className="h-2 w-full rounded-full bg-blue-50 dark:bg-blue-950/30">
-                  <div
-                    className="h-2 rounded-full bg-blue-500"
-                    style={{
-                      width: `${(referrer.count / statistics.total_users) * 100}%`,
-                    }}
-                  />
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {((referrer.count / statistics.total_users) * 100).toFixed(1)}% of users
-                </div>
-              </div>
-            ))}
           </div>
         </CardContent>
       </Card>
