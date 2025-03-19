@@ -68,6 +68,11 @@ interface Statistics {
     active_last_7d: number
     active_last_30d: number
   }
+  referrer_statistics: Array<{
+    referrer_id: string | null
+    name: string
+    count: number
+  }>
 }
 
 export default function StatisticsPage() {
@@ -463,6 +468,36 @@ export default function StatisticsPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sixth row - Referrer Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Referrer Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {statistics?.referrer_statistics.map((referrer) => (
+              <div key={referrer.referrer_id || 'organic'} className="bg-card p-3 rounded-lg border shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium">{referrer.name}</div>
+                  <div className="text-sm font-bold text-blue-600">{referrer.count}</div>
+                </div>
+                <div className="h-2 w-full rounded-full bg-blue-50 dark:bg-blue-950/30">
+                  <div
+                    className="h-2 rounded-full bg-blue-500"
+                    style={{
+                      width: `${(referrer.count / statistics.total_users) * 100}%`,
+                    }}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {((referrer.count / statistics.total_users) * 100).toFixed(1)}% of users
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
