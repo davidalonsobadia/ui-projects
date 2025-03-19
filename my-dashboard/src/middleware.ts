@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value || ''
   const isLoginPage = request.nextUrl.pathname === '/login'
-  const isPublicPath = ['/login'].includes(request.nextUrl.pathname)
+  const isPublicPath = ['/login', '/api/health'].includes(request.nextUrl.pathname)
 
   // If trying to access protected route without token
   if (!token && !isPublicPath) {
@@ -29,6 +29,6 @@ export const config = {
      * - favicon.ico (favicon file)
      */
     //'/((?!api|_next/static|_next/image|favicon.ico).*)',
-    '/((?!api|_next/static|_next/image|images|favicon.ico).*)'
+    '/((?!api/health|_next/static|_next/image|images|favicon.ico).*)'
   ],
 }
