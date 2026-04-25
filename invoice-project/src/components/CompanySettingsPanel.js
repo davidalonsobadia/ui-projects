@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 
-const EMPTY = { nombre: '', nif: '', direccion: '', email: '', telefono: '' };
+const KOALVIA_DEFAULT = {
+  nombre: 'Koalvia Technologies SL',
+  nif: 'B26886952',
+  direccion: 'c/ Arbúcies 17. 08173 Sant Cugat del Vallès. Barcelona',
+  email: 'david.alonso@koalvia.com',
+  telefono: '',
+};
 
 const FIELDS = [
   { key: 'nombre', label: 'Nombre / Empresa', span: false },
@@ -12,7 +18,7 @@ const FIELDS = [
 ];
 
 const CompanySettingsPanel = () => {
-  const [company, setCompany] = useLocalStorage('company_settings', EMPTY);
+  const [company, setCompany] = useLocalStorage('company_settings', KOALVIA_DEFAULT);
   const [editing, setEditing] = useState(!company.nombre);
   const [draft, setDraft] = useState(company);
 
