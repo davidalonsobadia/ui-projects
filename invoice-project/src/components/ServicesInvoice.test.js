@@ -21,12 +21,22 @@ test('calculates totals correctly', () => {
   render(<ServicesInvoice onBack={() => {}} />);
   const priceInput = screen.getByPlaceholderText(/0\.00/i);
   fireEvent.change(priceInput, { target: { value: '1000' } });
-  expect(screen.getByText('€ 1.000,00')).toBeInTheDocument();
-  expect(screen.getByText('€ 210,00')).toBeInTheDocument();
-  expect(screen.getByText('€ 1.210,00')).toBeInTheDocument();
+  expect(screen.getAllByText('€ 1.000,00').length).toBeGreaterThan(0);
+  expect(screen.getAllByText('€ 210,00').length).toBeGreaterThan(0);
+  expect(screen.getAllByText('€ 1.210,00').length).toBeGreaterThan(0);
 });
 
 test('renders back button', () => {
   render(<ServicesInvoice onBack={() => {}} />);
   expect(screen.getByText(/Volver al inicio/i)).toBeInTheDocument();
+});
+
+test('print layout contains company name and FACTURA heading', () => {
+  localStorage.setItem('company_settings', JSON.stringify({
+    nombre: 'Koalvia Technologies SL', nif: 'B26886952',
+    direccion: 'c/ Arbúcies 17', email: 'david.alonso@koalvia.com', telefono: ''
+  }));
+  render(<ServicesInvoice onBack={() => {}} />);
+  expect(screen.getByTestId('print-layout')).toBeInTheDocument();
+  expect(screen.getByTestId('print-company-name')).toHaveTextContent('Koalvia Technologies SL');
 });
