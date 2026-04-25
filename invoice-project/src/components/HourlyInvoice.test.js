@@ -18,3 +18,13 @@ test('renders invoice number field', () => {
   render(<HourlyInvoice onBack={() => {}} />);
   expect(screen.getByLabelText(/Nº Factura/i)).toBeInTheDocument();
 });
+
+test('print layout contains company name and FACTURA heading', () => {
+  localStorage.setItem('company_settings', JSON.stringify({
+    nombre: 'Koalvia Technologies SL', nif: 'B26886952',
+    direccion: 'c/ Arbúcies 17', email: 'david.alonso@koalvia.com', telefono: ''
+  }));
+  render(<HourlyInvoice onBack={() => {}} />);
+  expect(screen.getByTestId('print-layout')).toBeInTheDocument();
+  expect(screen.getByTestId('print-company-name')).toHaveTextContent('Koalvia Technologies SL');
+});
