@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git check-ignore *)",
+      "Bash(npm test *)",
+      "Bash(gh pr create --title 'feat: add services invoice type with home screen navigation' --body ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)"
+    ]
+  }
+}
