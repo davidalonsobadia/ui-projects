@@ -1,8 +1,18 @@
 import React from 'react';
 
-const HomeScreen = ({ onSelect }) => (
+const HomeScreen = ({ onSelect, onSignOut }) => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
     <div className="max-w-2xl w-full">
+      {onSignOut && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={onSignOut}
+            className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      )}
       <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
         Generador de Facturas
       </h1>
