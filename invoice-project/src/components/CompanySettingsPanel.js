@@ -17,13 +17,14 @@ const FIELDS = [
   { key: 'telefono', label: 'Teléfono (opcional)', span: false },
 ];
 
-const CompanySettingsPanel = () => {
+const CompanySettingsPanel = ({ onSave }) => {
   const [company, setCompany] = useLocalStorage('company_settings', KOALVIA_DEFAULT);
   const [editing, setEditing] = useState(!company.nombre);
   const [draft, setDraft] = useState(company);
 
   const handleSave = () => {
     setCompany(draft);
+    onSave?.(draft);
     setEditing(false);
   };
 

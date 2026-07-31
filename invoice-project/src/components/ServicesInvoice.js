@@ -13,7 +13,7 @@ const NAVY = '#1e3a5f';
 
 const ServicesInvoice = ({ onBack }) => {
   const [lastInvoiceNumber, setLastInvoiceNumber] = useLocalStorage('last_invoice_number', null);
-  const [company] = useLocalStorage('company_settings', {
+  const [company, setCompany] = useLocalStorage('company_settings', {
     nombre: '', nif: '', direccion: '', email: '', telefono: ''
   });
   const nextNum = getNextInvoiceNumber(lastInvoiceNumber);
@@ -114,7 +114,7 @@ const ServicesInvoice = ({ onBack }) => {
             </div>
           </header>
 
-          <CompanySettingsPanel />
+          <CompanySettingsPanel onSave={setCompany} />
 
           <div className="border border-slate-200 rounded-lg p-4 mb-6">
             <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide mb-3">Datos del cliente</div>

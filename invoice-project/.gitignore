@@ -22,3 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .worktrees/
+
+# local runtime state from the superpowers brainstorm skill (pids, logs, servers)
+.superpowers/

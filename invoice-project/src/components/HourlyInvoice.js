@@ -4,11 +4,17 @@ import CompanySettingsPanel from './CompanySettingsPanel';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { getNextInvoiceNumber, formatInvoiceNumber } from '../lib/utils';
 
+const formatEUR = (num) => {
+  const parts = num.toFixed(2).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return parts.join(',');
+};
+
 const NAVY = '#1e3a5f';
 
 const HourlyInvoice = ({ onBack }) => {
   const [lastInvoiceNumber, setLastInvoiceNumber] = useLocalStorage('last_invoice_number', null);
-  const [company] = useLocalStorage('company_settings', {
+  const [company, setCompany] = useLocalStorage('company_settings', {
     nombre: '', nif: '', direccion: '', email: '', telefono: ''
   });
   const nextNum = getNextInvoiceNumber(lastInvoiceNumber);
@@ -73,7 +79,9 @@ const HourlyInvoice = ({ onBack }) => {
 
   const totalHours = workData.reduce((sum, e) => sum + e.hours, 0);
   const hourlyRate = 40;
-  const totalAmount = totalHours * hourlyRate;
+  const base = totalHours * hourlyRate;
+  const iva = base * 0.21;
+  const total = base + iva;
 
   const handlePrint = () => {
     setLastInvoiceNumber(nextNum);
@@ -149,7 +157,7 @@ const HourlyInvoice = ({ onBack }) => {
             </div>
           </header>
 
-          <CompanySettingsPanel />
+          <CompanySettingsPanel onSave={setCompany} />
 
           <div className="border border-slate-200 rounded-lg p-4 mb-6">
             <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide mb-3">Datos del cliente</div>
@@ -235,7 +243,9 @@ const HourlyInvoice = ({ onBack }) => {
                   <tbody>
                     <tr className="font-bold"><td className="border p-2 text-right">Total Horas:</td><td className="border p-2 text-right" style={{ width: '100px' }}>{totalHours}</td></tr>
                     <tr className="font-bold"><td className="border p-2 text-right">Tarifa por Hora:</td><td className="border p-2 text-right">€40</td></tr>
-                    <tr className="font-bold bg-gray-100"><td className="border p-2 text-right">Total:</td><td className="border p-2 text-right">€{totalAmount}</td></tr>
+                    <tr><td className="border p-2 text-right text-gray-600">Base imponible</td><td className="border p-2 text-right">€ {formatEUR(base)}</td></tr>
+                    <tr><td className="border p-2 text-right text-gray-600">IVA (21%)</td><td className="border p-2 text-right">€ {formatEUR(iva)}</td></tr>
+                    <tr className="font-bold bg-gray-100"><td className="border p-2 text-right">Total:</td><td className="border p-2 text-right">€ {formatEUR(total)}</td></tr>
                   </tbody>
                 </table>
                 <div className={`mt-6 p-3 bg-gray-50 rounded border ${!invoiceComment.trim() ? 'hidden' : ''}`}>
@@ -310,7 +320,7 @@ const HourlyInvoice = ({ onBack }) => {
         )}
 
         {/* Summary + total */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
           <div style={{ minWidth: '240px' }}>
             {Object.entries(taskSummary).map(([task, hours]) => (
               <div key={task} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: '12px', color: '#64748b' }}>
@@ -320,8 +330,14 @@ const HourlyInvoice = ({ onBack }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#64748b', borderTop: '1px solid #e2e8f0', marginTop: '4px' }}>
               <span>Total horas</span><span>{totalHours}h × €40</span>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#64748b' }}>
+              <span>Base imponible</span><span>€ {formatEUR(base)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#64748b' }}>
+              <span>IVA (21%)</span><span>€ {formatEUR(iva)}</span>
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: `2px solid ${NAVY}`, marginTop: '4px', fontWeight: '800', fontSize: '16px', color: '#1e293b' }}>
-              <span>TOTAL</span><span>€{totalAmount}</span>
+              <span>TOTAL</span><span>€ {formatEUR(total)}</span>
             </div>
           </div>
         </div>
@@ -339,8 +355,8 @@ const HourlyInvoice = ({ onBack }) => {
           html, body { margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .print\\:hidden { display: none !important; }
           .hidden.print\\:block { display: block !important; }
-          [data-testid="print-layout"] { padding: 15mm !important; }
-          @page { size: A4; margin: 0; }
+          [data-testid="print-layout"] { padding: 0 15mm !important; }
+          @page { size: A4; margin: 15mm 0; }
           table { page-break-inside: auto; }
           tr { page-break-inside: avoid; }
           thead { display: table-header-group; }
