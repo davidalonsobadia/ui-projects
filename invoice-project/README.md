@@ -2,6 +2,27 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Environment variables (Firebase)
+
+The app initializes Firebase from the following environment variables (see
+`src/lib/firebase.js`). Only the **names** are documented here — never commit
+real values.
+
+- `REACT_APP_FIREBASE_API_KEY`
+- `REACT_APP_FIREBASE_AUTH_DOMAIN`
+- `REACT_APP_FIREBASE_PROJECT_ID`
+- `REACT_APP_FIREBASE_STORAGE_BUCKET`
+- `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`
+- `REACT_APP_FIREBASE_APP_ID`
+
+CRA only exposes variables prefixed with `REACT_APP_` to the client bundle.
+
+- **CI/production:** these are provided as repository secrets and injected into
+  the build environment. No values live in the repo.
+- **Local development:** create an untracked `.env.local` file at the project
+  root with the six variables above. `.env.local` is already listed in
+  `.gitignore`, so it is never committed.
+
 ## Available Scripts
 
 In the project directory, you can run:
