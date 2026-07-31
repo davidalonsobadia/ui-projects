@@ -21,3 +21,15 @@ test('calls onSelect("services") when services card clicked', () => {
   fireEvent.click(screen.getByText(/Factura de Servicios/i));
   expect(onSelect).toHaveBeenCalledWith('services');
 });
+
+test('renders a sign-out control and calls onSignOut when clicked', () => {
+  const onSignOut = jest.fn();
+  render(<HomeScreen onSelect={() => {}} onSignOut={onSignOut} />);
+  fireEvent.click(screen.getByRole('button', { name: /Cerrar sesión/i }));
+  expect(onSignOut).toHaveBeenCalledTimes(1);
+});
+
+test('omits the sign-out control when no onSignOut is provided', () => {
+  render(<HomeScreen onSelect={() => {}} />);
+  expect(screen.queryByRole('button', { name: /Cerrar sesión/i })).not.toBeInTheDocument();
+});
