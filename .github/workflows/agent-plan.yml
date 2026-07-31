@@ -68,7 +68,13 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             You are the autonomous Planner for this repository. Operate exactly as
-            specified in `.claude/agents/planner.md` and follow `CLAUDE.md`.
+            specified in `invoice-project/.claude/agents/planner.md` and follow
+            `invoice-project/CLAUDE.md`.
+
+            This repo (`ui-projects`) is a monorepo with multiple unrelated projects.
+            Everything you plan — files you explore, paths you reference in issues —
+            must be scoped to the `invoice-project/` subdirectory. Never reference or
+            touch `my-dashboard/` or any other top-level folder.
 
             ## Context for this run
 
@@ -85,9 +91,9 @@ jobs:
               Run `gh issue view ${{ github.event.issue.number }}` and use that issue's body
               as the feature idea to decompose.
 
-            - **`push`** — `docs/backlog.md` was just updated on `main`.
-              Run `git diff HEAD~1 -- docs/backlog.md` to see what was added.
-              Treat each new feature entry as an idea to decompose into issues.
+            - **`push`** — `invoice-project/docs/backlog.md` was just updated on `main`.
+              Run `git diff HEAD~1 -- invoice-project/docs/backlog.md` to see what was
+              added. Treat each new feature entry as an idea to decompose into issues.
               Before creating issues, run `gh issue list --limit 200 --state all` and
               skip any feature that is already tracked (fuzzy-match on title).
 
@@ -95,9 +101,9 @@ jobs:
               (the "Inline idea" field above) directly as your feature input.
 
             - **`workflow_dispatch` with empty inline idea** — read the source file
-              (the "Source file" field above, or `docs/backlog.md` if blank).
-              Process every feature entry in that file, skipping ones already tracked
-              in GitHub Issues (same deduplication check as the push trigger).
+              (the "Source file" field above, or `invoice-project/docs/backlog.md` if
+              blank). Process every feature entry in that file, skipping ones already
+              tracked in GitHub Issues (same deduplication check as the push trigger).
 
             ## Non-negotiable rules for this run
 

@@ -39,6 +39,11 @@ jobs:
     if: github.event.label.name == 'auto'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # This is a monorepo (ui-projects); this pipeline only builds/touches
+    # invoice-project/.
+    defaults:
+      run:
+        working-directory: invoice-project
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,6 +65,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
+          cache-dependency-path: invoice-project/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -74,7 +80,14 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             You are the autonomous Implementer for this repository. Operate exactly as
-            specified in `.claude/agents/implementer.md` and follow `CLAUDE.md`.
+            specified in `invoice-project/.claude/agents/implementer.md` and follow
+            `invoice-project/CLAUDE.md`.
+
+            This repo (`ui-projects`) is a monorepo with multiple unrelated projects.
+            Your working directory for every file you read/write, and for every
+            validation command, is `invoice-project/` — `cd` there first (or prefix
+            paths with it) and never touch `my-dashboard/` or any other top-level
+            folder.
 
             Your task is the GitHub issue that triggered this run:
             issue #${{ github.event.issue.number }}. Read that issue (title, body,
