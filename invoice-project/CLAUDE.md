@@ -1,5 +1,9 @@
 # invoice-project
 
+> This file describes `invoice-project/` only. The git repo (`ui-projects`) is a
+> monorepo that also contains `my-dashboard/`, an unrelated project — every path
+> below is relative to this directory, which is `invoice-project/`'s own root.
+
 Invoice generator for Koalvia. Lets you fill in an hourly-rate or a
 services-based invoice, prints/exports it as a clean A4 PDF, and remembers
 your company data and invoice numbering between visits.

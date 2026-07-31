@@ -1,6 +1,10 @@
 name: Deploy
 
 # Deploys the production build to Firebase Hosting whenever main is updated.
+#
+# This is a monorepo (ui-projects); this workflow only builds/deploys the
+# invoice-project subdirectory (firebase.json lives there too, hence
+# `entryPoint` on the deploy step below).
 on:
   push:
     branches: [main]
@@ -15,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: PROD
+    defaults:
+      run:
+        working-directory: invoice-project
 
     steps:
       - name: Checkout
@@ -24,6 +31,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
+          cache-dependency-path: invoice-project/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -48,3 +56,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
           channelId: live
+          entryPoint: invoice-project

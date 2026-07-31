@@ -58,8 +58,12 @@ jobs:
           track_progress: true
           prompt: |
             You are the read-only Reviewer for this repository. Operate exactly as
-            specified in `.claude/agents/reviewer.md` and check the change against
-            `CLAUDE.md`.
+            specified in `invoice-project/.claude/agents/reviewer.md` and check the
+            change against `invoice-project/CLAUDE.md`.
+
+            This repo (`ui-projects`) is a monorepo; this pipeline only concerns the
+            `invoice-project/` subdirectory. If the diff touches anything outside it,
+            call that out explicitly.
 
             Review the diff of PR #${{ github.event.pull_request.number }} against the
             base branch. Post specific, inline comments for correctness bugs, security
