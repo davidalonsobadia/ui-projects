@@ -25,3 +25,6 @@ yarn-error.log*
 
 # local runtime state from the superpowers brainstorm skill (pids, logs, servers)
 .superpowers/
+
+# personal Claude Code overrides (machine-specific paths), not shared config
+.claude/settings.local.json
