@@ -9,13 +9,25 @@ const mockUnsubscribe = jest.fn();
 const mockOnAuthStateChanged = jest.fn();
 const mockSignInWithEmailAndPassword = jest.fn();
 const mockSignOut = jest.fn();
+// The invoice screens read company settings from Firestore via
+// `useCompanySettings`; mock `firebase/firestore` (and expose `db`) so those
+// screens render without a real Firestore. `onSnapshot` never fires here, so
+// the forms fall back to their default company shape — enough for navigation.
+const mockDoc = jest.fn(() => ({}));
+const mockOnSnapshot = jest.fn(() => jest.fn());
+const mockSetDoc = jest.fn(() => Promise.resolve());
 
 jest.mock('firebase/auth', () => ({
   onAuthStateChanged: (...args) => mockOnAuthStateChanged(...args),
   signInWithEmailAndPassword: (...args) => mockSignInWithEmailAndPassword(...args),
   signOut: (...args) => mockSignOut(...args),
 }));
-jest.mock('./lib/firebase', () => ({ auth: { __brand: 'auth' } }));
+jest.mock('firebase/firestore', () => ({
+  doc: (...args) => mockDoc(...args),
+  onSnapshot: (...args) => mockOnSnapshot(...args),
+  setDoc: (...args) => mockSetDoc(...args),
+}));
+jest.mock('./lib/firebase', () => ({ auth: { __brand: 'auth' }, db: { __brand: 'db' } }));
 
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -45,6 +57,9 @@ beforeEach(() => {
   });
   mockSignInWithEmailAndPassword.mockResolvedValue({});
   mockSignOut.mockResolvedValue();
+  mockDoc.mockImplementation(() => ({}));
+  mockOnSnapshot.mockImplementation(() => jest.fn());
+  mockSetDoc.mockImplementation(() => Promise.resolve());
 });
 
 test('shows a loading state until auth resolves', () => {
