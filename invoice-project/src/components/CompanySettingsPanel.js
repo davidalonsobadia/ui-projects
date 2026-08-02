@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import useCompanySettings from '../hooks/useCompanySettings';
 
 const KOALVIA_DEFAULT = {
   nombre: 'Koalvia Technologies SL',
@@ -18,7 +18,7 @@ const FIELDS = [
 ];
 
 const CompanySettingsPanel = ({ onSave }) => {
-  const [company, setCompany] = useLocalStorage('company_settings', KOALVIA_DEFAULT);
+  const [company, setCompany] = useCompanySettings(KOALVIA_DEFAULT);
   const [editing, setEditing] = useState(!company.nombre);
   const [draft, setDraft] = useState(company);
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import CompanySettingsPanel from './CompanySettingsPanel';
 import useLocalStorage from '../hooks/useLocalStorage';
+import useCompanySettings from '../hooks/useCompanySettings';
 import { getNextInvoiceNumber, formatInvoiceNumber } from '../lib/utils';
 
 const formatEUR = (num) => {
@@ -14,7 +15,7 @@ const NAVY = '#1e3a5f';
 
 const HourlyInvoice = ({ onBack }) => {
   const [lastInvoiceNumber, setLastInvoiceNumber] = useLocalStorage('last_invoice_number', null);
-  const [company, setCompany] = useLocalStorage('company_settings', {
+  const [company, setCompany] = useCompanySettings({
     nombre: '', nif: '', direccion: '', email: '', telefono: ''
   });
   const nextNum = getNextInvoiceNumber(lastInvoiceNumber);
