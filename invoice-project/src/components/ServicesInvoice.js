@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CompanySettingsPanel from './CompanySettingsPanel';
-import useLocalStorage from '../hooks/useLocalStorage';
 import useCompanySettings from '../hooks/useCompanySettings';
+import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthProvider';
+import { allocateInvoiceNumber } from '../lib/invoiceNumber';
 import { getNextInvoiceNumber, formatInvoiceNumber } from '../lib/utils';
 
 const formatEUR = (num) => {
@@ -13,13 +15,19 @@ const formatEUR = (num) => {
 const NAVY = '#1e3a5f';
 
 const ServicesInvoice = ({ onBack }) => {
-  const [lastInvoiceNumber, setLastInvoiceNumber] = useLocalStorage('last_invoice_number', null);
+  const { user } = useAuth();
+  const uid = user ? user.uid : null;
   const [company, setCompany] = useCompanySettings({
     nombre: '', nif: '', direccion: '', email: '', telefono: ''
   });
-  const nextNum = getNextInvoiceNumber(lastInvoiceNumber);
 
-  const [invoiceNumber, setInvoiceNumber] = useState(formatInvoiceNumber(nextNum));
+  // The number shown before printing is provisional: the definitive one is
+  // allocated atomically from Firestore at print time (so concurrent prints
+  // never collide), which may advance it. A manual edit overrides that and is
+  // printed as-is (for corrections/re-issues) without touching the counter.
+  const [invoiceNumber, setInvoiceNumber] = useState(formatInvoiceNumber(getNextInvoiceNumber(null)));
+  const [numberOverridden, setNumberOverridden] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState(new Date().toLocaleDateString('es-ES'));
   const [dueDate, setDueDate] = useState('');
   const [client, setClient] = useState({ nombre: '', nif: '', direccion: '' });
@@ -41,10 +49,23 @@ const ServicesInvoice = ({ onBack }) => {
   const iva = base * 0.21;
   const total = base + iva;
 
-  const handlePrint = () => {
-    setLastInvoiceNumber(nextNum);
-    window.print();
+  const handlePrint = async () => {
+    // A manual override is printed exactly as typed and must not advance the
+    // shared counter; otherwise allocate the definitive number atomically.
+    if (!numberOverridden && uid) {
+      const allocated = await allocateInvoiceNumber(db, uid);
+      setInvoiceNumber(formatInvoiceNumber(allocated));
+    }
+    // Defer window.print() to an effect so the freshly allocated number is
+    // committed to the DOM before the print dialog captures it.
+    setPrinting(true);
   };
+
+  useEffect(() => {
+    if (!printing) return;
+    window.print();
+    setPrinting(false);
+  }, [printing]);
 
   const handleClear = () => {
     setClient({ nombre: '', nif: '', direccion: '' });
@@ -88,10 +109,13 @@ const ServicesInvoice = ({ onBack }) => {
                 <input
                   id="services-invoice-number"
                   value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  onChange={(e) => { setInvoiceNumber(e.target.value); setNumberOverridden(true); }}
                   className="border-b border-gray-300 focus:border-blue-500 outline-none bg-transparent text-sm"
                   style={{ width: '90px' }}
                 />
+                {!numberOverridden && (
+                  <span className="text-[10px] text-slate-400 block">se asignará al imprimir</span>
+                )}
               </div>
               <div>
                 <label className="text-xs text-slate-400 block">Fecha</label>

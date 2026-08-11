@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-// Company settings now come from Firestore via `useCompanySettings`. Mock it
-// with a `useState`-backed stub so the print layout can be asserted without
-// Firebase. Invoice numbering still uses localStorage, so keep clearing it.
+// Company settings come from Firestore via `useCompanySettings` and the invoice
+// number is now allocated atomically via `allocateInvoiceNumber`. Both, plus the
+// shared `db` and the auth context, are mocked so no real Firebase is touched.
 //
 // Note: variables referenced inside a jest.mock() factory must be prefixed with
 // `mock` (Jest hoists the factory above the imports).
@@ -21,9 +21,28 @@ jest.mock('../hooks/useCompanySettings', () => {
   };
 });
 
+let mockAllocate;
+jest.mock('../lib/firebase', () => ({ db: { __brand: 'db' } }));
+jest.mock('../context/AuthProvider', () => ({ useAuth: () => ({ user: { uid: 'user-1' } }) }));
+jest.mock('../lib/invoiceNumber', () => ({
+  __esModule: true,
+  allocateInvoiceNumber: (...args) => mockAllocate(...args),
+  default: (...args) => mockAllocate(...args),
+}));
+
 import ServicesInvoice from './ServicesInvoice';
 
-beforeEach(() => { mockCompany = undefined; localStorage.clear(); });
+// Fill a concept name so the print button becomes enabled.
+const fillConcept = () => {
+  fireEvent.change(screen.getByPlaceholderText(/Concepto/i), { target: { value: 'Consultoría' } });
+};
+
+beforeEach(() => {
+  mockCompany = undefined;
+  localStorage.clear();
+  mockAllocate = jest.fn().mockResolvedValue({ year: 2026, counter: 7 });
+  window.print = jest.fn();
+});
 
 test('renders one empty line item row on load', () => {
   render(<ServicesInvoice onBack={() => {}} />);
@@ -60,4 +79,26 @@ test('print layout contains company name and FACTURA heading', () => {
   render(<ServicesInvoice onBack={() => {}} />);
   expect(screen.getByTestId('print-layout')).toBeInTheDocument();
   expect(screen.getByTestId('print-company-name')).toHaveTextContent('Koalvia Technologies SL');
+});
+
+test('printing allocates the next number atomically and renders it before printing', async () => {
+  render(<ServicesInvoice onBack={() => {}} />);
+  fillConcept();
+  fireEvent.click(screen.getByText(/Imprimir \/ Guardar PDF/i));
+
+  await waitFor(() => expect(window.print).toHaveBeenCalled());
+  expect(mockAllocate).toHaveBeenCalledWith({ __brand: 'db' }, 'user-1');
+  expect(screen.getByLabelText(/Nº Factura/i)).toHaveValue('2026-0007');
+  expect(screen.getByTestId('print-layout')).toHaveTextContent('Nº 2026-0007');
+});
+
+test('a manually overridden number is printed as-is and does not allocate', async () => {
+  render(<ServicesInvoice onBack={() => {}} />);
+  fillConcept();
+  fireEvent.change(screen.getByLabelText(/Nº Factura/i), { target: { value: 'RECT-2026-0003' } });
+  fireEvent.click(screen.getByText(/Imprimir \/ Guardar PDF/i));
+
+  await waitFor(() => expect(window.print).toHaveBeenCalled());
+  expect(mockAllocate).not.toHaveBeenCalled();
+  expect(screen.getByLabelText(/Nº Factura/i)).toHaveValue('RECT-2026-0003');
 });
