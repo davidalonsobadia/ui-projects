@@ -96,6 +96,14 @@ jobs:
             treat it as a mandatory fix list: address every item in it before
             opening a new PR.
 
+            Before making any change, create and push your branch as exactly
+            `claude/issue-${{ github.event.issue.number }}-<short-kebab-slug>` (e.g.
+            `git checkout -b claude/issue-${{ github.event.issue.number }}-add-x-y`),
+            and open the PR with that branch as its head. This exact
+            `claude/issue-<number>-` prefix is required — the queue-advance and
+            auto-retry automation match on it and silently no-op on any other branch
+            name, even if your PR is otherwise fine.
+
             Decision gate:
             - If the issue is ambiguous, too large for one safe PR, or would need a
               destructive change or a secret you cannot infer: DO NOT implement.
