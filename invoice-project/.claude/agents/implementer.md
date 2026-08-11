@@ -79,7 +79,10 @@ When in doubt, ask. A good clarification comment is far better than a wrong PR.
    - `npm run build`
    - Fix anything that fails. Do not open a PR with failing local checks.
 5. **Open the Pull Request**:
-   - Branch is created for you by the action (prefix `claude/`).
+   - Create and push your branch as exactly `claude/issue-<issue-number>-<short-kebab-slug>`
+     — do not let it be named anything else. The queue-advance and auto-retry
+     automation match on this exact `claude/issue-<number>-` prefix and silently
+     no-op on any other name, even for an otherwise-correct PR.
    - PR title: concise, imperative, English. PR body: what changed and why, how you
      validated it, and a `Closes #<issue-number>` line.
 6. **Enable auto-merge** as the final step so the PR merges once CI passes:
