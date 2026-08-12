@@ -16,11 +16,15 @@ const mockSignOut = jest.fn();
 // The invoice screens also mount the client picker, which reads clients from
 // Firestore via `useClients` (`collection` + `addDoc`). Stub those too so the
 // forms render; `onSnapshot` never fires, so the client list stays empty.
+// The history view reads saved invoices via `useInvoices`, which builds an
+// ordered query (`query` + `orderBy`); stub those too so it renders (empty).
 const mockDoc = jest.fn(() => ({}));
 const mockCollection = jest.fn(() => ({}));
 const mockOnSnapshot = jest.fn(() => jest.fn());
 const mockSetDoc = jest.fn(() => Promise.resolve());
 const mockAddDoc = jest.fn(() => Promise.resolve({ id: 'new-id' }));
+const mockQuery = jest.fn(() => ({}));
+const mockOrderBy = jest.fn(() => ({}));
 
 jest.mock('firebase/auth', () => ({
   onAuthStateChanged: (...args) => mockOnAuthStateChanged(...args),
@@ -33,6 +37,8 @@ jest.mock('firebase/firestore', () => ({
   onSnapshot: (...args) => mockOnSnapshot(...args),
   setDoc: (...args) => mockSetDoc(...args),
   addDoc: (...args) => mockAddDoc(...args),
+  query: (...args) => mockQuery(...args),
+  orderBy: (...args) => mockOrderBy(...args),
 }));
 jest.mock('./lib/firebase', () => ({ auth: { __brand: 'auth' }, db: { __brand: 'db' } }));
 
@@ -69,6 +75,8 @@ beforeEach(() => {
   mockOnSnapshot.mockImplementation(() => jest.fn());
   mockSetDoc.mockImplementation(() => Promise.resolve());
   mockAddDoc.mockImplementation(() => Promise.resolve({ id: 'new-id' }));
+  mockQuery.mockImplementation(() => ({}));
+  mockOrderBy.mockImplementation(() => ({}));
 });
 
 test('shows a loading state until auth resolves', () => {
@@ -107,6 +115,21 @@ test('back button returns to home screen', () => {
   renderApp();
   resolveAuth({ uid: 'user-1' });
   fireEvent.click(screen.getByText(/Factura de Servicios/i));
+  fireEvent.click(screen.getByText(/Volver al inicio/i));
+  expect(screen.getByText(/Generador de Facturas/i)).toBeInTheDocument();
+});
+
+test('navigates to the invoice history view when signed in', () => {
+  renderApp();
+  resolveAuth({ uid: 'user-1' });
+  fireEvent.click(screen.getByText(/Ver historial de facturas/i));
+  expect(screen.getByText(/Historial de facturas/i)).toBeInTheDocument();
+});
+
+test('back from history returns to the home screen', () => {
+  renderApp();
+  resolveAuth({ uid: 'user-1' });
+  fireEvent.click(screen.getByText(/Ver historial de facturas/i));
   fireEvent.click(screen.getByText(/Volver al inicio/i));
   expect(screen.getByText(/Generador de Facturas/i)).toBeInTheDocument();
 });

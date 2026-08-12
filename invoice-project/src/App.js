@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import HomeScreen from './components/HomeScreen';
 import HourlyInvoice from './components/HourlyInvoice';
 import ServicesInvoice from './components/ServicesInvoice';
+import InvoiceHistory from './components/InvoiceHistory';
 import LoginScreen from './components/LoginScreen';
 import { useAuth } from './context/AuthProvider';
 
@@ -21,6 +22,7 @@ const App = () => {
 
   if (currentView === 'hourly') return <HourlyInvoice onBack={() => setCurrentView('home')} />;
   if (currentView === 'services') return <ServicesInvoice onBack={() => setCurrentView('home')} />;
+  if (currentView === 'history') return <InvoiceHistory onBack={() => setCurrentView('home')} />;
   return <HomeScreen onSelect={setCurrentView} onSignOut={signOut} />;
 };
 
