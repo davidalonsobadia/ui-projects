@@ -89,7 +89,7 @@ jobs:
           # Bash is limited to git (diff) and echo (the PASS/BLOCK verdict file).
           claude_args: |
             --model claude-sonnet-4-6
-            --max-turns 20
+            --max-turns 35
             --allowedTools "Read,Glob,Grep,TodoWrite,Bash(git:*),Bash(echo:*)"
             --disallowedTools "Edit,Write,WebSearch,WebFetch"
 
