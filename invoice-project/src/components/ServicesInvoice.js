@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import CompanySettingsPanel from './CompanySettingsPanel';
-import useLocalStorage from '../hooks/useLocalStorage';
 import useCompanySettings from '../hooks/useCompanySettings';
+import { useAuth } from '../context/AuthProvider';
+import { db } from '../lib/firebase';
+import { allocateInvoiceNumber } from '../lib/invoiceNumber';
 import { getNextInvoiceNumber, formatInvoiceNumber } from '../lib/utils';
 
 const formatEUR = (num) => {
@@ -13,13 +15,29 @@ const formatEUR = (num) => {
 const NAVY = '#1e3a5f';
 
 const ServicesInvoice = ({ onBack }) => {
-  const [lastInvoiceNumber, setLastInvoiceNumber] = useLocalStorage('last_invoice_number', null);
+  const { user } = useAuth();
+  const uid = user ? user.uid : null;
   const [company, setCompany] = useCompanySettings({
     nombre: '', nif: '', direccion: '', email: '', telefono: ''
   });
-  const nextNum = getNextInvoiceNumber(lastInvoiceNumber);
 
-  const [invoiceNumber, setInvoiceNumber] = useState(formatInvoiceNumber(nextNum));
+  // The number shown before printing is provisional: the real value is allocated
+  // atomically from Firestore at print time. Seed the field with the current
+  // year's first number via the shared numbering logic (no duplication).
+  const [invoiceNumber, setInvoiceNumber] = useState(
+    formatInvoiceNumber(getNextInvoiceNumber(null)),
+  );
+  // Set once the user edits the number by hand: a manual value (for corrections /
+  // re-issues) is printed as-is and does not consume a number from the counter.
+  const [numberOverridden, setNumberOverridden] = useState(false);
+  // `allocating` disables the print button while a transaction is in flight;
+  // `printError` surfaces a Spanish message if allocation fails.
+  const [allocating, setAllocating] = useState(false);
+  const [printError, setPrintError] = useState(null);
+  const [printing, setPrinting] = useState(false);
+  // Synchronous re-entry guard so a rapid double-click cannot start two
+  // concurrent allocations (state updates are async and would let both through).
+  const inFlightRef = useRef(false);
   const [invoiceDate, setInvoiceDate] = useState(new Date().toLocaleDateString('es-ES'));
   const [dueDate, setDueDate] = useState('');
   const [client, setClient] = useState({ nombre: '', nif: '', direccion: '' });
@@ -41,9 +59,40 @@ const ServicesInvoice = ({ onBack }) => {
   const iva = base * 0.21;
   const total = base + iva;
 
-  const handlePrint = () => {
-    setLastInvoiceNumber(nextNum);
+  const handlePrint = async () => {
+    // Ignore re-entrant clicks while an allocation is already running.
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    setAllocating(true);
+    setPrintError(null);
+    try {
+      // A manual override is printed verbatim and must not touch the counter.
+      if (!numberOverridden && uid) {
+        const allocated = await allocateInvoiceNumber(db, uid);
+        setInvoiceNumber(formatInvoiceNumber(allocated));
+      }
+      // Defer window.print() to the effect below so the freshly allocated number
+      // is committed to the DOM before the print dialog captures it.
+      setPrinting(true);
+    } catch (err) {
+      setPrintError(
+        'No se pudo asignar el número de factura. Revisa tu conexión e inténtalo de nuevo.',
+      );
+    } finally {
+      inFlightRef.current = false;
+      setAllocating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!printing) return;
     window.print();
+    setPrinting(false);
+  }, [printing]);
+
+  const handleInvoiceNumberChange = (e) => {
+    setNumberOverridden(true);
+    setInvoiceNumber(e.target.value);
   };
 
   const handleClear = () => {
@@ -65,15 +114,19 @@ const ServicesInvoice = ({ onBack }) => {
           <div className="flex gap-2 mb-4">
             <button
               onClick={handlePrint}
-              disabled={items.every(i => !i.nombre)}
+              disabled={items.every(i => !i.nombre) || allocating}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300"
             >
-              Imprimir / Guardar PDF
+              {allocating ? 'Asignando número…' : 'Imprimir / Guardar PDF'}
             </button>
             <button onClick={handleClear} className="bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200">
               Borrar todo
             </button>
           </div>
+
+          {printError && (
+            <p role="alert" className="text-sm text-red-600 mb-4">{printError}</p>
+          )}
 
           <p className="text-sm text-gray-500 mb-4">
             Para mejores resultados, seleccione "Guardar como PDF".
@@ -88,10 +141,13 @@ const ServicesInvoice = ({ onBack }) => {
                 <input
                   id="services-invoice-number"
                   value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  onChange={handleInvoiceNumberChange}
                   className="border-b border-gray-300 focus:border-blue-500 outline-none bg-transparent text-sm"
                   style={{ width: '90px' }}
                 />
+                {!numberOverridden && (
+                  <span className="text-[10px] text-slate-400 block mt-0.5">se asignará al imprimir</span>
+                )}
               </div>
               <div>
                 <label className="text-xs text-slate-400 block">Fecha</label>
