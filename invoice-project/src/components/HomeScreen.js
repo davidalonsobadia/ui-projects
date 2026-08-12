@@ -45,6 +45,14 @@ const HomeScreen = ({ onSelect, onSignOut }) => (
           </p>
         </button>
       </div>
+      <div className="text-center mt-8">
+        <button
+          onClick={() => onSelect('history')}
+          className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+        >
+          Ver historial de facturas
+        </button>
+      </div>
     </div>
   </div>
 );
