@@ -13,9 +13,14 @@ const mockSignOut = jest.fn();
 // `useCompanySettings`; mock `firebase/firestore` (and expose `db`) so those
 // screens render without a real Firestore. `onSnapshot` never fires here, so
 // the forms fall back to their default company shape — enough for navigation.
+// The invoice screens also mount the client picker, which reads clients from
+// Firestore via `useClients` (`collection` + `addDoc`). Stub those too so the
+// forms render; `onSnapshot` never fires, so the client list stays empty.
 const mockDoc = jest.fn(() => ({}));
+const mockCollection = jest.fn(() => ({}));
 const mockOnSnapshot = jest.fn(() => jest.fn());
 const mockSetDoc = jest.fn(() => Promise.resolve());
+const mockAddDoc = jest.fn(() => Promise.resolve({ id: 'new-id' }));
 
 jest.mock('firebase/auth', () => ({
   onAuthStateChanged: (...args) => mockOnAuthStateChanged(...args),
@@ -24,8 +29,10 @@ jest.mock('firebase/auth', () => ({
 }));
 jest.mock('firebase/firestore', () => ({
   doc: (...args) => mockDoc(...args),
+  collection: (...args) => mockCollection(...args),
   onSnapshot: (...args) => mockOnSnapshot(...args),
   setDoc: (...args) => mockSetDoc(...args),
+  addDoc: (...args) => mockAddDoc(...args),
 }));
 jest.mock('./lib/firebase', () => ({ auth: { __brand: 'auth' }, db: { __brand: 'db' } }));
 
@@ -58,8 +65,10 @@ beforeEach(() => {
   mockSignInWithEmailAndPassword.mockResolvedValue({});
   mockSignOut.mockResolvedValue();
   mockDoc.mockImplementation(() => ({}));
+  mockCollection.mockImplementation(() => ({}));
   mockOnSnapshot.mockImplementation(() => jest.fn());
   mockSetDoc.mockImplementation(() => Promise.resolve());
+  mockAddDoc.mockImplementation(() => Promise.resolve({ id: 'new-id' }));
 });
 
 test('shows a loading state until auth resolves', () => {

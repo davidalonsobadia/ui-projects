@@ -29,6 +29,15 @@ jest.mock('../context/AuthProvider', () => ({ useAuth: () => ({ user: mockUser }
 jest.mock('../lib/invoiceNumber', () => ({
   allocateInvoiceNumber: (...args) => mockAllocate(...args),
 }));
+// The client block is now a self-contained picker backed by `useClients`; stub
+// it so these tests stay focused on the invoice/print behavior.
+jest.mock('./ClientPicker', () => ({
+  __esModule: true,
+  default: () => {
+    const ReactModule = require('react');
+    return ReactModule.createElement('div', { 'data-testid': 'client-picker' });
+  },
+}));
 
 import HourlyInvoice from './HourlyInvoice';
 
@@ -64,6 +73,11 @@ test('renders invoice number field with a provisional hint', () => {
   render(<HourlyInvoice onBack={() => {}} />);
   expect(screen.getByLabelText(/Nº Factura/i)).toBeInTheDocument();
   expect(screen.getByText(/se asignará al imprimir/i)).toBeInTheDocument();
+});
+
+test('renders the client picker in the edit form', () => {
+  render(<HourlyInvoice onBack={() => {}} />);
+  expect(screen.getByTestId('client-picker')).toBeInTheDocument();
 });
 
 test('print layout contains company name and FACTURA heading', () => {
