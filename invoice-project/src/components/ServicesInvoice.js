@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import CompanySettingsPanel from './CompanySettingsPanel';
+import ClientPicker from './ClientPicker';
 import useCompanySettings from '../hooks/useCompanySettings';
 import { useAuth } from '../context/AuthProvider';
 import { db } from '../lib/firebase';
@@ -173,23 +174,7 @@ const ServicesInvoice = ({ onBack }) => {
 
           <CompanySettingsPanel onSave={setCompany} />
 
-          <div className="border border-slate-200 rounded-lg p-4 mb-6">
-            <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide mb-3">Datos del cliente</div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-400 block mb-1">Nombre / Empresa</label>
-                <input value={client.nombre} onChange={(e) => setClient({ ...client, nombre: e.target.value })} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 block mb-1">NIF/CIF</label>
-                <input value={client.nif} onChange={(e) => setClient({ ...client, nif: e.target.value })} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs text-slate-400 block mb-1">Dirección</label>
-                <input value={client.direccion} onChange={(e) => setClient({ ...client, direccion: e.target.value })} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-              </div>
-            </div>
-          </div>
+          <ClientPicker value={client} onChange={setClient} />
 
           <div className="mb-6">
             <table className="w-full border-collapse">
