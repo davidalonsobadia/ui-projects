@@ -5,6 +5,7 @@ import useCompanySettings from '../hooks/useCompanySettings';
 import { useAuth } from '../context/AuthProvider';
 import { db } from '../lib/firebase';
 import { allocateInvoiceNumber } from '../lib/invoiceNumber';
+import { saveInvoice } from '../lib/invoices';
 import { getNextInvoiceNumber, formatInvoiceNumber } from '../lib/utils';
 
 const formatEUR = (num) => {
@@ -35,6 +36,9 @@ const ServicesInvoice = ({ onBack }) => {
   // `printError` surfaces a Spanish message if allocation fails.
   const [allocating, setAllocating] = useState(false);
   const [printError, setPrintError] = useState(null);
+  // A persistence hiccup must not block the PDF: a failed save surfaces this
+  // Spanish message but still lets the invoice print.
+  const [saveError, setSaveError] = useState(null);
   const [printing, setPrinting] = useState(false);
   // Synchronous re-entry guard so a rapid double-click cannot start two
   // concurrent allocations (state updates are async and would let both through).
@@ -66,11 +70,35 @@ const ServicesInvoice = ({ onBack }) => {
     inFlightRef.current = true;
     setAllocating(true);
     setPrintError(null);
+    setSaveError(null);
     try {
       // A manual override is printed verbatim and must not touch the counter.
+      let finalNumber = invoiceNumber;
       if (!numberOverridden && uid) {
         const allocated = await allocateInvoiceNumber(db, uid);
-        setInvoiceNumber(formatInvoiceNumber(allocated));
+        finalNumber = formatInvoiceNumber(allocated);
+        setInvoiceNumber(finalNumber);
+      }
+      // Record the emitted invoice under the signed-in user. This is a separate
+      // write right after allocation; a save failure must not block the PDF, so
+      // it only surfaces a Spanish message and still lets printing proceed.
+      if (uid) {
+        try {
+          await saveInvoice(db, uid, {
+            number: finalNumber,
+            type: 'services',
+            issueDate: invoiceDate,
+            client,
+            lineItems: items.map(({ nombre, descripcion, precio }) => ({
+              nombre,
+              descripcion,
+              precio,
+            })),
+            amounts: { base, iva, total },
+          });
+        } catch (saveErr) {
+          setSaveError('No se pudo guardar la factura en tu historial.');
+        }
       }
       // Defer window.print() to the effect below so the freshly allocated number
       // is committed to the DOM before the print dialog captures it.
@@ -127,6 +155,10 @@ const ServicesInvoice = ({ onBack }) => {
 
           {printError && (
             <p role="alert" className="text-sm text-red-600 mb-4">{printError}</p>
+          )}
+
+          {saveError && (
+            <p role="alert" className="text-sm text-red-600 mb-4">{saveError}</p>
           )}
 
           <p className="text-sm text-gray-500 mb-4">

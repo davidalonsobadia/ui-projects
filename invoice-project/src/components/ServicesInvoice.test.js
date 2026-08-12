@@ -11,6 +11,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 let mockCompany;
 let mockAllocate;
 let mockUser;
+let mockSaveInvoice;
 
 jest.mock('../hooks/useCompanySettings', () => {
   const ReactModule = require('react');
@@ -28,6 +29,9 @@ jest.mock('../lib/firebase', () => ({ db: { __brand: 'db' } }));
 jest.mock('../context/AuthProvider', () => ({ useAuth: () => ({ user: mockUser }) }));
 jest.mock('../lib/invoiceNumber', () => ({
   allocateInvoiceNumber: (...args) => mockAllocate(...args),
+}));
+jest.mock('../lib/invoices', () => ({
+  saveInvoice: (...args) => mockSaveInvoice(...args),
 }));
 // The client block is now a self-contained picker backed by `useClients`; stub
 // it so these tests stay focused on the invoice/print behavior.
@@ -47,6 +51,7 @@ beforeEach(() => {
   mockCompany = undefined;
   mockUser = { uid: 'user-1' };
   mockAllocate = jest.fn(() => Promise.resolve({ year: YEAR, counter: 7 }));
+  mockSaveInvoice = jest.fn(() => Promise.resolve('doc-1'));
   window.print = jest.fn();
   localStorage.clear();
 });
@@ -113,6 +118,35 @@ test('printing allocates a number atomically and shows the formatted result', as
   expect(screen.getByLabelText(/Nº Factura/i)).toHaveValue(`${YEAR}-0007`);
 });
 
+test('printing saves the emitted invoice once with the expected record', async () => {
+  render(<ServicesInvoice onBack={() => {}} />);
+  addConcept();
+  fireEvent.click(screen.getByText(/Imprimir \/ Guardar PDF/i));
+
+  await waitFor(() => expect(window.print).toHaveBeenCalled());
+  expect(mockSaveInvoice).toHaveBeenCalledTimes(1);
+  expect(mockSaveInvoice).toHaveBeenCalledWith(
+    { __brand: 'db' },
+    'user-1',
+    expect.objectContaining({
+      number: `${YEAR}-0007`,
+      type: 'services',
+      amounts: { base: 0, iva: 0, total: 0 },
+      lineItems: [{ nombre: 'Consultoría', descripcion: '', precio: '' }],
+    }),
+  );
+});
+
+test('a save failure still prints and shows a Spanish message', async () => {
+  mockSaveInvoice = jest.fn(() => Promise.reject(new Error('offline')));
+  render(<ServicesInvoice onBack={() => {}} />);
+  addConcept();
+  fireEvent.click(screen.getByText(/Imprimir \/ Guardar PDF/i));
+
+  await waitFor(() => expect(window.print).toHaveBeenCalled());
+  expect(screen.getByRole('alert')).toHaveTextContent(/No se pudo guardar la factura/i);
+});
+
 test('a manually overridden number is printed as-is without allocating', async () => {
   render(<ServicesInvoice onBack={() => {}} />);
   addConcept();
@@ -122,6 +156,11 @@ test('a manually overridden number is printed as-is without allocating', async (
   await waitFor(() => expect(window.print).toHaveBeenCalled());
   expect(mockAllocate).not.toHaveBeenCalled();
   expect(screen.getByLabelText(/Nº Factura/i)).toHaveValue('2024-0123');
+  expect(mockSaveInvoice).toHaveBeenCalledWith(
+    { __brand: 'db' },
+    'user-1',
+    expect.objectContaining({ number: '2024-0123' }),
+  );
 });
 
 test('shows a Spanish error and does not print when allocation fails', async () => {
