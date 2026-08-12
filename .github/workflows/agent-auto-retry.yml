@@ -45,7 +45,13 @@ jobs:
       - name: Resolve issue, PR, and retry count
         id: meta
         run: |
+          # Branch is claude/issue-<n>-<slug> — strip the prefix, then strip
+          # everything from the first remaining "-" onward to keep just <n>.
+          # (A bare `${BRANCH#claude/issue-}` left the whole slug attached,
+          # e.g. "7-atomic-invoice-numbers" instead of "7", breaking every
+          # `gh issue ...`/`gh api .../issues/$ISSUE` call below.)
           issue="${BRANCH#claude/issue-}"
+          issue="${issue%%-*}"
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
 
           # Look for an open PR on this branch. Empty → already handled or merged.
