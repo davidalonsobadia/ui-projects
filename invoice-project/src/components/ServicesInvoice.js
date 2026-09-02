@@ -97,6 +97,7 @@ const ServicesInvoice = ({ onBack }) => {
             amounts: { base, iva, total },
           });
         } catch (saveErr) {
+          console.error(saveErr);
           setSaveError('No se pudo guardar la factura en tu historial.');
         }
       }
@@ -104,6 +105,7 @@ const ServicesInvoice = ({ onBack }) => {
       // is committed to the DOM before the print dialog captures it.
       setPrinting(true);
     } catch (err) {
+      console.error(err);
       setPrintError(
         'No se pudo asignar el número de factura. Revisa tu conexión e inténtalo de nuevo.',
       );

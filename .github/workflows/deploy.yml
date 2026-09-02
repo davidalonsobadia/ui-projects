@@ -57,3 +57,17 @@ jobs:
           projectId: ${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
           channelId: live
           entryPoint: invoice-project
+
+      # action-hosting-deploy above only touches Hosting. firestore.rules is
+      # tracked in this repo (see firebase.json) but nothing else deploys it,
+      # so without this step it can silently drift from what's actually live
+      # — see the 2026-09-02 "can't save client/invoice" incident, caused by
+      # exactly that drift.
+      - name: Deploy Firestore rules
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          npx firebase-tools deploy --only firestore:rules --project "$FIREBASE_PROJECT_ID"
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json

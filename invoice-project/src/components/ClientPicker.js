@@ -61,6 +61,7 @@ const ClientPicker = ({ value, onChange }) => {
       setAdding(false);
       setDraft(EMPTY_DRAFT);
     } catch (err) {
+      console.error(err);
       setError('No se pudo guardar el cliente. Inténtalo de nuevo.');
     } finally {
       setSaving(false);
