@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import useCompanySettings from '../hooks/useCompanySettings';
 
-const KOALVIA_DEFAULT = {
+export const KOALVIA_DEFAULT = {
   nombre: 'Koalvia Technologies SL',
   nif: 'B26886952',
   direccion: 'c/ Arbúcies 17. 08173 Sant Cugat del Vallès. Barcelona',
@@ -17,13 +16,17 @@ const FIELDS = [
   { key: 'telefono', label: 'Teléfono (opcional)', span: false },
 ];
 
-const CompanySettingsPanel = ({ onSave }) => {
-  const [company, setCompany] = useCompanySettings(KOALVIA_DEFAULT);
+// `company` is owned by the parent invoice screen (a single `useCompanySettings`
+// call there) and passed down, so this panel and the printed invoice always
+// read the exact same value. This used to call `useCompanySettings` itself,
+// which created a second, independent Firestore-backed state that could
+// diverge from the print layout's — see the 2026-09-02 "company name missing
+// on the printed invoice" incident, caused by exactly that divergence.
+const CompanySettingsPanel = ({ company, onSave }) => {
   const [editing, setEditing] = useState(!company.nombre);
   const [draft, setDraft] = useState(company);
 
   const handleSave = () => {
-    setCompany(draft);
     onSave?.(draft);
     setEditing(false);
   };

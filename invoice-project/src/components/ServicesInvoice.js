@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import CompanySettingsPanel from './CompanySettingsPanel';
+import CompanySettingsPanel, { KOALVIA_DEFAULT } from './CompanySettingsPanel';
 import ClientPicker from './ClientPicker';
 import useCompanySettings from '../hooks/useCompanySettings';
 import { useAuth } from '../context/AuthProvider';
@@ -19,9 +19,7 @@ const NAVY = '#1e3a5f';
 const ServicesInvoice = ({ onBack }) => {
   const { user } = useAuth();
   const uid = user ? user.uid : null;
-  const [company, setCompany] = useCompanySettings({
-    nombre: '', nif: '', direccion: '', email: '', telefono: ''
-  });
+  const [company, setCompany] = useCompanySettings(KOALVIA_DEFAULT);
 
   // The number shown before printing is provisional: the real value is allocated
   // atomically from Firestore at print time. Seed the field with the current
@@ -97,6 +95,7 @@ const ServicesInvoice = ({ onBack }) => {
             amounts: { base, iva, total },
           });
         } catch (saveErr) {
+          console.error(saveErr);
           setSaveError('No se pudo guardar la factura en tu historial.');
         }
       }
@@ -104,6 +103,7 @@ const ServicesInvoice = ({ onBack }) => {
       // is committed to the DOM before the print dialog captures it.
       setPrinting(true);
     } catch (err) {
+      console.error(err);
       setPrintError(
         'No se pudo asignar el número de factura. Revisa tu conexión e inténtalo de nuevo.',
       );
@@ -204,7 +204,7 @@ const ServicesInvoice = ({ onBack }) => {
             </div>
           </header>
 
-          <CompanySettingsPanel onSave={setCompany} />
+          <CompanySettingsPanel company={company} onSave={setCompany} />
 
           <ClientPicker value={client} onChange={setClient} />
 

@@ -65,7 +65,7 @@ function useCompanySettings(defaultValue) {
 
       if (legacy !== null) {
         setCompanyState(legacy);
-        setDoc(ref, legacy, { merge: true }).catch(() => {});
+        setDoc(ref, legacy, { merge: true }).catch((err) => console.error(err));
       } else {
         setCompanyState(defaultRef.current);
       }
@@ -80,7 +80,7 @@ function useCompanySettings(defaultValue) {
       const value = next instanceof Function ? next(companyRef.current) : next;
       setCompanyState(value);
       if (uid) {
-        setDoc(companyDocRef(uid), value, { merge: true }).catch(() => {});
+        setDoc(companyDocRef(uid), value, { merge: true }).catch((err) => console.error(err));
       }
     },
     [uid],
