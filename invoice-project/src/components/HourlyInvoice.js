@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import CompanySettingsPanel from './CompanySettingsPanel';
+import CompanySettingsPanel, { KOALVIA_DEFAULT } from './CompanySettingsPanel';
 import ClientPicker from './ClientPicker';
 import useCompanySettings from '../hooks/useCompanySettings';
 import { useAuth } from '../context/AuthProvider';
@@ -20,9 +20,7 @@ const NAVY = '#1e3a5f';
 const HourlyInvoice = ({ onBack }) => {
   const { user } = useAuth();
   const uid = user ? user.uid : null;
-  const [company, setCompany] = useCompanySettings({
-    nombre: '', nif: '', direccion: '', email: '', telefono: ''
-  });
+  const [company, setCompany] = useCompanySettings(KOALVIA_DEFAULT);
 
   const [workData, setWorkData] = useState([]);
   const [pasteText, setPasteText] = useState('');
@@ -245,7 +243,7 @@ const HourlyInvoice = ({ onBack }) => {
             </div>
           </header>
 
-          <CompanySettingsPanel onSave={setCompany} />
+          <CompanySettingsPanel company={company} onSave={setCompany} />
 
           <ClientPicker value={client} onChange={setClient} />
 
